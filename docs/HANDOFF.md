@@ -10,27 +10,25 @@
 Tools to **read and publish** Deye SG05/SG06 inverter telemetry over **Modbus RTU**:
 
 1. Parameters & PDF register map (`docs/protocol/`)
-2. Cytron **IRIV IOC MQTT Gateway** import JSON (`iriv/`)
+2. Cytron **IRIV IOC MQTT Gateway** import JSON + Mosquitto Docker + HA package (`iriv-ioc-mqtt-gateway/`)
 3. Python **slave emulator** for offline logger bring-up (`emulator/`)
-4. ESPHome master example (`esphome/`)
-5. Planned: **ESP32/S3 + UART→RS485** Modbus master guide (`docs/esp32/`)
-6. Static **MQTT web dashboard** (`web/`) — same `iriv/ivt/#` topics as the LCD; browser uses MQTT over WebSockets
+4. ESPHome / ESP32 master example (`esphome/`)
+5. Static **MQTT web dashboard** (`web/`) — browser uses MQTT over WebSockets; needs a publisher on `iriv/ivt/#`
 
-**Not in scope here:** JK BMS Modbus on UART1, or Pylon-style BMS bench slave (see sister repo `jk-pb-rs485-monitor`). LCD firmware lives in `deye-mqtt-dashboard-lcd-35` (ESP32 only).
+**Not in scope here:** JK BMS Modbus on UART1 (see sister repo `jk-pb-rs485-monitor`). LCD firmware lives in `deye-mqtt-dashboard-lcd-35` (separate repo).
 
 ---
 
 ## 2. Lab topology (setup A — ESS)
 
 ```text
-JK-PB1A16S10P ──CAN──► Deye SG06 ──RS485@9600──► IRIV (master) ──MQTT──► broker / HA / LCD / web
+JK-PB1A16S10P ──CAN──► Deye SG06 ──RS485@9600──► IRIV (master) ──MQTT──► broker / HA / web
                          slave 1
 ```
 
 - Pack: **16S 51.2 V 100 Ah**, BMS **JK-PB1A16S10P**, CAN protocol e.g. app `001` Deye LV hybrid.
 - Prefer SOC/V/I from **inverter** Modbus (regs 183/184/190/191/…).
-- Web dashboard (MQTT over WebSockets): `web/` — same topics as the LCD.
-- LCD firmware handoff package: `handoff/deye-mqtt-dashboard-lcd-35/` (firmware lives in repo `deye-mqtt-dashboard-lcd-35`).
+- Alternate master: ESPHome / ESP32 on RS485 (not at the same time as IRIV).
 
 ---
 
@@ -38,13 +36,11 @@ JK-PB1A16S10P ──CAN──► Deye SG06 ──RS485@9600──► IRIV (maste
 
 | Path | Role |
 |------|------|
-| `iriv/` | `_gen_iriv_jobs.py`, `iriv-ioc-config.json` (import on firmware ≥ V1.2.6), `iriv-ioc-config-26.json` (older firmware) |
+| `iriv-ioc-mqtt-gateway/` | `_gen_iriv_jobs.py`, import JSON, Docker Mosquitto, `iriv_deye_mqtt.yaml` |
 | `emulator/` | `deye-sg06-ivt-emu.py`, `rs485_emu/` (Deye profile only) |
-| `esphome/` | NodeMCU Modbus master YAML |
-| `homeassistant/` | MQTT sensor package |
-| `web/` | Browser dashboard |
+| `esphome/` | NodeMCU YAML + ESP32/RS485 wiring README |
+| `web/` | Browser dashboard (MQTT WS) |
 | `docs/protocol/` | Deye Modbus PDF V118 |
-| `handoff/` | Export package for LCD repo |
 
 ---
 
@@ -57,7 +53,8 @@ JK-PB1A16S10P ──CAN──► Deye SG06 ──RS485@9600──► IRIV (maste
 | Topics | One scale per job → hierarchy `iriv/ivt/battery/soc`, `pv1/power`, `load/current`, … |
 | Host | MQTT host often `iriv-pi-control` |
 | Rate | Raise `globalRateMax` / `globalBurst` when many 1 s jobs |
-| Regenerate | `python iriv/_gen_iriv_jobs.py` — do not hand-edit dozens of jobs if avoidable |
+| Regenerate | `python iriv-ioc-mqtt-gateway/_gen_iriv_jobs.py` — do not hand-edit dozens of jobs if avoidable |
+| First restore | USB-C → `http://10.0.0.1` → import JSON (see `iriv-ioc-mqtt-gateway/README.md`) |
 
 Current job set on **V1.2.6+** (**27** enabled, `iriv-ioc-config.json`): PV1 + **PV2** V/I/P, **Load Current (179)**, and **Inverter Frequency (193)**. Older firmware: import the 26-job file (no PV2 Current).
 
@@ -93,13 +90,13 @@ python emulator/deye-sg06-ivt-emu.py --port COMxx --debug --scenario day
 ```
 
 - Emulator is a **slave** (answers FC03). Smoke: reg 59 = 2 (normal) / 4 (fault).
-- ESPHome: `esphome/deye-sg06-nodemcu.yaml`. Sparse map → many FC03 ranges; keep ~15 s + `command_throttle` or you get `Frame already active` / `Poll refused`.
+- ESPHome: `esphome/deye-sg06-nodemcu.yaml` + `esphome/README.md`. Sparse map → many FC03 ranges; keep ~15 s + `command_throttle` or you get `Frame already active` / `Poll refused`.
 
 ---
 
-## 7. Next work (ESP32)
+## 7. Web dashboard
 
-Implement `docs/esp32/README.md`: ESP32-S3 + UART RS485 as **alternate master**, same registers/topics as IRIV, still one master on the bus.
+`web/` subscribes to `iriv/ivt/#` over WebSockets. Compatible publishers: **IRIV IOC MQTT Gateway** or an **ESP32 that publishes the same MQTT topics**. Not for ESPHome-only HA API without MQTT.
 
 ---
 

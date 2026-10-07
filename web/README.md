@@ -1,6 +1,18 @@
 # Deye MQTT web dashboard
 
-Static page that subscribes to the same `iriv/ivt/#` topics as the LCD. The browser talks **MQTT over WebSockets** — not TCP port 1883.
+Static page that subscribes to **`iriv/ivt/#`**. The browser talks **MQTT over WebSockets** — not TCP port 1883.
+
+## Compatibility
+
+This UI only shows live data when a device **publishes MQTT** under `iriv/ivt/...` with payload `{"value": <number>}`:
+
+| Publisher | Supported |
+|-----------|-----------|
+| Cytron **IRIV IOC MQTT Gateway** | Yes |
+| **ESP32** (or other master) that publishes the same `iriv/ivt/#` topics | Yes |
+| ESPHome **API only** (no MQTT publish) | **No** — use Home Assistant entities instead |
+
+Mosquitto Docker with WebSocket **9001** is in [`../iriv-ioc-mqtt-gateway/`](../iriv-ioc-mqtt-gateway/) (`docker compose up -d`).
 
 ## Run locally
 
@@ -14,15 +26,15 @@ Open `http://127.0.0.1:8080`. Gear icon → set the broker WebSocket URL (defaul
 
 Layouts (top-right toggle, remembered in the browser):
 
-- **Simplify** — same tabs as the LCD. PV1 / PV2 stretch to full width.
+- **Simplify** — tabbed overview. PV1 / PV2 stretch to full width.
 - **Full** — KPI row, Deye-style flow graph, today energy, and live tables with data age. Battery **negative = charging**, **positive = discharging**. Grid CT matches HA/Deye Cloud: **positive = Import** (buy from grid), **negative = Export**. Load current is MQTT-only (not estimated from U×I).
-- **Minimal** — old-school utility SCADA single-line diagram: black board, cyan/red orthogonal feeders, monospace tags, live MW strip.
+- **Minimal** — utility SCADA single-line diagram: black board, cyan/red orthogonal feeders, monospace tags, live MW strip.
 
 Host the folder with nginx, Caddy, or GitHub Pages the same way. No backend is required.
 
-## Enable WebSockets on Mosquitto (Pi)
+## Enable WebSockets on Mosquitto
 
-MQTT 1883 is what IRIV and the LCD already use. Add a **second listener** for the browser:
+Prefer the Docker stack in `iriv-ioc-mqtt-gateway/` (ports 1883 + 9001). On a bare Mosquitto install, add a second listener:
 
 ```conf
 # /etc/mosquitto/conf.d/websockets.conf

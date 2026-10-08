@@ -1,4 +1,4 @@
-# Agent notes — Deye SG06 RS485 Monitor
+# Agent notes — Deye SG06 Inverter RS485 Monitor
 
 Read **[docs/HANDOFF.md](docs/HANDOFF.md)** before changing Modbus maps, IRIV JSON, or ESP32 / ESPHome pollers.
 

@@ -1,5 +1,7 @@
 # Deye MQTT web dashboard
 
+> Vietnamese: [README-vn.md](README-vn.md)
+
 Static page that subscribes to **`iriv/ivt/#`**. The browser talks **MQTT over WebSockets** — not TCP port 1883.
 
 ## Compatibility

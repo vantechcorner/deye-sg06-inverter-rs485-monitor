@@ -1,6 +1,6 @@
-# Deye SG06 RS485 Monitor
+# Deye SG06 Inverter RS485 Monitor
 
-Monitor a **Deye SG05/SG06** hybrid inverter over **Modbus RTU (RS485)** on the datalogger port. This repo provides register maps, a Cytron IRIV IOC MQTT Gateway import, an ESPHome / ESP32 RS485 master example, a PC slave emulator, Mosquitto Docker for MQTT, a Home Assistant package, and a browser MQTT dashboard.
+Monitor a **Deye SG06 Inverter** (SG05/SG06 family) over **Modbus RTU (RS485)** on the datalogger port. This repo provides register maps, a Cytron IRIV IOC MQTT Gateway import, an ESPHome / ESP32 RS485 master example, a PC slave emulator, Mosquitto Docker for MQTT, a Home Assistant package, and a browser MQTT dashboard.
 
 > Vietnamese: [README-vn.md](README-vn.md)  
 > Agent notes: [AGENTS.md](AGENTS.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
@@ -54,8 +54,8 @@ Deye SG06 (slave 1) --RS485@9600--> IRIV IOC (master) --MQTT--> Mosquitto
                                                               |--> web/ dashboard (WS :9001)
 ```
 
-Full guide: [`iriv-ioc-mqtt-gateway/README.md`](iriv-ioc-mqtt-gateway/README.md)  
-(Mosquitto Docker, first USB restore at `http://10.0.0.1`, HA sensors.)
+Full guide: [`iriv-ioc-mqtt-gateway/README.md`](iriv-ioc-mqtt-gateway/README.md) · [Vietnamese](iriv-ioc-mqtt-gateway/README-vn.md)  
+(Latest Cytron firmware, Mosquitto Docker, USB restore at `http://10.0.0.1`, HA MQTT + File Editor.)
 
 ### B — ESP32 / ESPHome + RS485 transceiver (RS485 → ESPHome / HA)
 
@@ -80,8 +80,8 @@ Wiring and flash: [`esphome/README.md`](esphome/README.md)
 |------|----------|
 | [`iriv-ioc-mqtt-gateway/`](iriv-ioc-mqtt-gateway/) | IRIV JSON configs, job generator, Mosquitto Docker, HA MQTT YAML |
 | [`esphome/`](esphome/) | ESPHome YAML + ESP32/RS485 wiring & flash guide |
-| [`emulator/`](emulator/) | Deye Modbus **slave** emulator for bench bring-up |
-| [`web/`](web/) | MQTT WebSocket dashboard (`iriv/ivt/#` only) |
+| [`emulator/`](emulator/) | Deye Modbus **slave** emulator ([README](emulator/README.md)) |
+| [`web/`](web/) | MQTT WebSocket dashboard (`iriv/ivt/#` only; [EN](web/README.md) · [VN](web/README-vn.md)) |
 | [`docs/`](docs/) | HANDOFF, protocol PDF, images |
 
 ```bash
@@ -146,3 +146,5 @@ Prefer battery SOC/V/I from **inverter** Modbus registers when the pack already 
 ## License / lab note
 
 Lab toolkit for personal ESS monitoring. Protocol PDF is Deye’s document — redistribute per their terms.
+
+Source code in this repository was written with **Cursor (AI)**. Although a human has reviewed it, **you should review the code yourself before running it** (especially anything that talks to RS485 hardware, MQTT brokers, or Home Assistant).

@@ -1,6 +1,10 @@
 # IRIV IOC MQTT Gateway — Deye SG06
 
+> Vietnamese: [README-vn.md](README-vn.md)
+
 Cytron **IRIV IOC MQTT Gateway** polls the Deye inverter over **Modbus RTU (RS485)** and publishes scaled values to MQTT under `iriv/ivt/...`.
+
+**Product page (firmware downloads):** [IRIV IO Controller MQTT — Cytron](https://www.cytron.io/p-iriv-io-controller-mqtt-ir4.0-industrial-i-o-controller-with-mqtt-ready)
 
 **One Modbus master per RS485 bus.** Do not run this gateway on the same A/B wires as ESPHome / ESP32.
 
@@ -66,7 +70,18 @@ Do **not** expose 1883/9001 to the public internet without TLS and authenticatio
 
 ## 2. First-time restore on the IRIV IOC MQTT Gateway
 
-On a new or factory-reset gateway, configuration is done over the USB gadget Ethernet interface:
+### Update firmware first
+
+Before importing this repo’s JSON, flash the **latest** IRIV IOC MQTT Gateway firmware from Cytron:
+
+1. Open the product page: [IRIV IO Controller MQTT](https://www.cytron.io/p-iriv-io-controller-mqtt-ir4.0-industrial-i-o-controller-with-mqtt-ready).
+2. Download the newest firmware package / release notes from that page (or the linked Cytron firmware-update tutorial).
+3. Follow Cytron’s **Factory Reset and Firmware Update** steps for the IRIV IOC MQTT Gateway until the device reports a current build.
+4. Prefer firmware **≥ V1.2.6** so you can import the full 27-job [`iriv-ioc-config.json`](iriv-ioc-config.json). Older builds still wipe the job list at a 27th enabled poll job — use [`iriv-ioc-config-26.json`](iriv-ioc-config-26.json) only if you cannot upgrade yet.
+
+### Restore / import config over USB
+
+On a new, factory-reset, or freshly updated gateway, configuration is done over the USB gadget Ethernet interface:
 
 1. Connect **USB-C** from the IRIV IOC MQTT Gateway to your PC.
 2. Wait until the host gets a USB Ethernet / RNDIS link (Windows may install a driver).
@@ -74,7 +89,7 @@ On a new or factory-reset gateway, configuration is done over the USB gadget Eth
 4. Log in with the credentials in the JSON template (**`admin` / `12345678`**) or the factory defaults if you have not imported yet (Cytron docs often ship `admin` / `admin` until you change the password).
 5. Restore / import the poll config:
    - Firmware **≥ V1.2.6** → [`iriv-ioc-config.json`](iriv-ioc-config.json)
-   - Older firmware → [`iriv-ioc-config-26.json`](iriv-ioc-config-26.json) (a 27th enabled job wiped the list on pre–V1.2.6 builds)
+   - Older firmware → [`iriv-ioc-config-26.json`](iriv-ioc-config-26.json)
 6. Confirm MQTT: host = your Mosquitto IP/hostname, port **1883**, base topic **`iriv/ivt`**, auth off unless your broker requires it.
 7. Wire **RS485 A/B** from the gateway to the Deye **datalogger / meter RS485** port (not the BMS CAN RJ45). Baud **9600**, slave **1**.
 8. After Ethernet LAN is enabled, use the device’s LAN IP for later config; USB `10.0.0.1` is mainly for first bring-up.
@@ -91,18 +106,36 @@ You should see topics such as `iriv/ivt/battery/soc`, `iriv/ivt/pv1/power`, `iri
 
 ## 3. Add sensors in Home Assistant
 
-1. Ensure HA can reach the same Mosquitto broker (Settings → Devices & services → MQTT).
-2. Copy [`iriv_deye_mqtt.yaml`](iriv_deye_mqtt.yaml) into your HA config, e.g. `config/packages/iriv_deye_mqtt.yaml`, with:
+### Prerequisites
+
+1. Home Assistant can reach the same Mosquitto broker as the IRIV gateway.
+2. The **MQTT** integration must already be installed and configured:
+   - **Settings → Devices & services → Add integration → MQTT** (or confirm MQTT is listed and connected).
+   - Point it at your broker host/port (**1883**). Without this integration, the YAML package below will not create working entities.
+
+### Option A — packages folder (recommended)
+
+1. Copy [`iriv_deye_mqtt.yaml`](iriv_deye_mqtt.yaml) into your HA config, e.g. `config/packages/iriv_deye_mqtt.yaml`.
+2. Ensure packages are enabled in `configuration.yaml`:
 
 ```yaml
 homeassistant:
   packages: !include_dir_named packages
 ```
 
-3. Restart HA or reload MQTT entities.
+3. Restart Home Assistant (or reload YAML / MQTT entities if your version supports it).
 4. Entities appear under device **Deye SG06 (IRIV)**; each sensor reads `value_json.value` from `iriv/ivt/...`.
 
-Alternatively merge the `mqtt:` block into `configuration.yaml`.
+### Option B — File Editor + `configuration.yaml`
+
+If you prefer not to manage a separate upload path:
+
+1. Install the **File editor** add-on (Settings → Add-ons → File editor) if it is not already installed.
+2. Open File editor and edit `/config/configuration.yaml` (shown as `/homeassistant/configuration.yaml` on some supervised / OS layouts).
+3. Either:
+   - enable the packages include as in Option A and place `iriv_deye_mqtt.yaml` under `packages/`, or
+   - paste / merge the `mqtt:` sensor block from [`iriv_deye_mqtt.yaml`](iriv_deye_mqtt.yaml) directly into `configuration.yaml`.
+4. Check configuration, then restart Home Assistant.
 
 ---
 

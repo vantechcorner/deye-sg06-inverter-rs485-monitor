@@ -4,6 +4,8 @@
 
 Cytron **IRIV IOC MQTT Gateway** đọc biến tần Deye qua **Modbus RTU (RS485)** và publish giá trị đã scale lên MQTT dưới `iriv/ivt/...`.
 
+![Lắp đặt IRIV IOC MQTT Gateway](../docs/images/iriv-ioc-mqtt-setup.jpg)
+
 **Trang sản phẩm (tải firmware):** [IRIV IO Controller MQTT — Cytron](https://www.cytron.io/p-iriv-io-controller-mqtt-ir4.0-industrial-i-o-controller-with-mqtt-ready)
 
 **Một Modbus master trên mỗi bus RS485.** Không chạy gateway này chung cặp A/B với ESPHome / ESP32.

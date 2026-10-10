@@ -4,6 +4,8 @@
 
 Cytron **IRIV IOC MQTT Gateway** polls the Deye inverter over **Modbus RTU (RS485)** and publishes scaled values to MQTT under `iriv/ivt/...`.
 
+![IRIV IOC MQTT Gateway setup](../docs/images/iriv-ioc-mqtt-setup.jpg)
+
 **Product page (firmware downloads):** [IRIV IO Controller MQTT — Cytron](https://www.cytron.io/p-iriv-io-controller-mqtt-ir4.0-industrial-i-o-controller-with-mqtt-ready)
 
 **One Modbus master per RS485 bus.** Do not run this gateway on the same A/B wires as ESPHome / ESP32.

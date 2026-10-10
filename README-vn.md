@@ -2,6 +2,8 @@
 
 Monitor **Deye SG06 Inverter** (dòng SG05/SG06) qua **Modbus RTU (RS485)** trên cổng datalogger. Repo này gồm bản đồ thanh ghi, file import Cytron IRIV IOC MQTT Gateway, ví dụ master ESPHome / ESP32 + RS485, emulator slave trên PC, Mosquitto Docker cho MQTT, gói Home Assistant và dashboard web MQTT.
 
+![Lắp đặt IRIV IOC MQTT Gateway](docs/images/iriv-ioc-mqtt-setup.jpg)
+
 > English: [README.md](README.md)  
 > Ghi chú agent: [AGENTS.md](AGENTS.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
 
@@ -138,8 +140,6 @@ Mở `http://127.0.0.1:8080` → broker WebSocket `ws://<host>:9001`. Xem [web/R
 Ưu tiên SOC/V/I pin từ thanh ghi Modbus **inverter** khi pack đã nói chuyện CAN với Deye.
 
 ![Setup — Deye SG06 + 16S pack](docs/images/setup-deye-sg06-16s-100ah.jpg)
-
-*Placeholder: lưu ảnh thành `docs/images/setup-deye-sg06-16s-100ah.jpg`.*
 
 ---
 

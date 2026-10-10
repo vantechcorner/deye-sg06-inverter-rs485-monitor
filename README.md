@@ -2,6 +2,8 @@
 
 Monitor a **Deye SG06 Inverter** (SG05/SG06 family) over **Modbus RTU (RS485)** on the datalogger port. This repo provides register maps, a Cytron IRIV IOC MQTT Gateway import, an ESPHome / ESP32 RS485 master example, a PC slave emulator, Mosquitto Docker for MQTT, a Home Assistant package, and a browser MQTT dashboard.
 
+![IRIV IOC MQTT Gateway setup](docs/images/iriv-ioc-mqtt-setup.jpg)
+
 > Vietnamese: [README-vn.md](README-vn.md)  
 > Agent notes: [AGENTS.md](AGENTS.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
 
@@ -138,8 +140,6 @@ Open `http://127.0.0.1:8080` → broker WebSocket `ws://<host>:9001`. See [web/R
 Prefer battery SOC/V/I from **inverter** Modbus registers when the pack already talks CAN to Deye.
 
 ![Setup — Deye SG06 + 16S pack](docs/images/setup-deye-sg06-16s-100ah.jpg)
-
-*Placeholder: save as `docs/images/setup-deye-sg06-16s-100ah.jpg`.*
 
 ---
 

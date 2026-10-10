@@ -26,6 +26,8 @@ python -m http.server 8080
 
 Mở `http://127.0.0.1:8080`. Biểu tượng bánh răng → URL WebSocket broker (mặc định `ws://<this-host>:9001`) → Connect.
 
+![Giao diện Simple MQTT viewer](../docs/images/simple-mqtt-viewer-web.jpg)
+
 Layout (góc trên bên phải, được nhớ trong trình duyệt):
 
 - **Simplify** — tổng quan theo tab. PV1 / PV2 kéo full chiều ngang.

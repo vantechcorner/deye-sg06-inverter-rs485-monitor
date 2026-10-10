@@ -38,6 +38,28 @@ python iriv-ioc-mqtt-gateway/_gen_iriv_jobs.py
 
 ---
 
+## Nối dây phần cứng (Deye SUN-6K-SG06LP1 ↔ IRIV)
+
+Dùng cổng **RS485 datalogger / meter** dạng RJ45 trên biến tần — **không** phải RJ45 **CAN** của BMS. Cắt một đầu cáp mạng Ethernet tiêu chuẩn, rồi nối ba dây tín hiệu vào terminal **RS485** trên IRIV (**A**, **B**, **G**).
+
+**Thứ tự chân RJ45 phía Deye:** ngàm (latch) xoay **xuống dưới**, đánh số chân **1 → 8 từ trái sang phải**.
+
+![Pinout RS485 Deye SG06LP1](../docs/images/deye-sg06lp1-rs485-pinout.jpg)
+
+| Chân RJ45 (Deye) | Tín hiệu | Màu dây (cáp lab) | Terminal IRIV |
+|------------------|----------|-------------------|---------------|
+| **1** | Modbus-485_B | Trắng | **B** |
+| **2** | Modbus-485_A | Đỏ | **A** |
+| **3** | GND_485 | Xanh nhạt | **G** |
+
+Chân **7** / **8** / **6** trên cổng Deye cũng mang A / B / GND; cáp lab này chỉ dùng **1–2–3**.
+
+![Cổng RS485 IRIV IOC MQTT Gateway](../docs/images/iriv-ioc-mqtt-gateway-rs485-port.jpg)
+
+Nếu bus im lặng, đảo **A** và **B** một lần rồi kiểm tra lại baud **9600**, slave **1**.
+
+---
+
 ## 1. Chạy Mosquitto bằng Docker
 
 Trong thư mục này:
@@ -89,20 +111,45 @@ Với gateway mới, vừa factory-reset, hoặc vừa cập nhật firmware, c�
 2. Đợi máy nhận link USB Ethernet / RNDIS (Windows có thể cài driver).
 3. Mở trình duyệt tới **`http://10.0.0.1`**.
 4. Đăng nhập bằng thông tin trong template JSON (**`admin` / `12345678`**) hoặc mật khẩu mặc định nhà máy nếu chưa import (tài liệu Cytron thường dùng `admin` / `admin` trước khi đổi mật khẩu).
-5. Restore / import config poll:
+5. Vào **System** (hoặc tương đương). Bật **Allow config over Ethernet** nếu sau này restore qua IP LAN, rồi dùng **Restore** để import config poll:
    - Firmware **≥ V1.2.6** → [`iriv-ioc-config.json`](iriv-ioc-config.json)
    - Firmware cũ hơn → [`iriv-ioc-config-26.json`](iriv-ioc-config-26.json)
-6. Kiểm tra MQTT: host = IP/hostname Mosquitto, cổng **1883**, base topic **`iriv/ivt`**, tắt auth trừ khi broker bắt buộc.
-7. Nối **RS485 A/B** từ gateway tới cổng **datalogger / meter RS485** của Deye (không phải RJ45 CAN của BMS). Baud **9600**, slave **1**.
-8. Sau khi bật Ethernet LAN, dùng IP LAN của thiết bị cho các lần cấu hình sau; USB `10.0.0.1` chủ yếu dùng lúc mang lên lần đầu.
 
-Kiểm tra traffic (ví dụ bằng mosquitto client):
+   ![System config — Allow config over Ethernet / Restore](../docs/images/iriv-ioc-mqtt-gateway-system-config-restore.jpg)
+
+6. Trang MQTT **Broker**: host = IP/hostname Mosquitto, cổng **1883**, base topic **`iriv/ivt`**, tắt auth trừ khi broker bắt buộc.
+
+   ![Cấu hình MQTT Broker trên IRIV IOC](../docs/images/iriv-ioc-mqtt-gateway-broker-config.jpg)
+
+7. Sau khi restore thành công, mở danh sách **poll job** Modbus và xác nhận các job đã bật có đủ (27 trên V1.2.6+, hoặc 26 với JSON cũ).
+
+   ![Poll job Modbus sau restore](../docs/images/iriv-ioc-mqtt-gateway-modbus-poll-job.jpg)
+
+8. Nối **RS485 A / B / G** như mục [Nối dây phần cứng](#nối-dây-phần-cứng-deye-sun-6k-sg06lp1--iriv) (RS485 datalogger, không phải CAN BMS). Baud **9600**, slave **1**.
+9. Sau khi bật Ethernet LAN, dùng IP LAN của thiết bị cho các lần cấu hình sau; USB `10.0.0.1` chủ yếu dùng lúc mang lên lần đầu.
+
+### Chạy thử — MQTT live sau khi restore
+
+Khi gateway đã nối Deye, Mosquitto đang chạy, và config đã restore:
+
+1. Kiểm tra nhanh bằng CLI:
 
 ```bash
 mosquitto_sub -h <broker-host> -t "iriv/ivt/#" -v
 ```
 
 Bạn sẽ thấy các topic như `iriv/ivt/battery/soc`, `iriv/ivt/pv1/power`, `iriv/ivt/load/current`.
+
+2. Dashboard trình duyệt từ [`../web/`](../web/):
+
+```powershell
+cd ../web
+python -m http.server 8080
+```
+
+Mở `http://127.0.0.1:8080`, đặt gear dialog tới `ws://<broker-host>:9001`, Connect. Giá trị live phải khớp poll job trên IRIV:
+
+![Simple MQTT viewer sau khi restore IRIV](../docs/images/simple-mqtt-viewer-web.jpg)
 
 ---
 

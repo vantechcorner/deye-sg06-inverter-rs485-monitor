@@ -2,6 +2,8 @@
 
 Monitor **Deye SG06 Inverter** (dòng SG05/SG06) qua **Modbus RTU (RS485)** trên cổng datalogger. Repo này gồm bản đồ thanh ghi, file import Cytron IRIV IOC MQTT Gateway, ví dụ master ESPHome / ESP32 + RS485, emulator slave trên PC, Mosquitto Docker cho MQTT, gói Home Assistant và dashboard web MQTT.
 
+![Deye SUN-6K-SG06LP1 RS485](docs/images/deye-sun-6k-sg06lp1-rs485.jpg)
+
 ![Lắp đặt IRIV IOC MQTT Gateway](docs/images/iriv-ioc-mqtt-setup.jpg)
 
 > English: [README.md](README.md)  
@@ -56,6 +58,8 @@ Deye SG06 (slave 1) --RS485@9600--> IRIV IOC (master) --MQTT--> Mosquitto
                                                               |--> web/ dashboard (WS :9001)
 ```
 
+![Lắp đặt IRIV IOC MQTT Gateway](docs/images/iriv-ioc-mqtt-setup-2.jpg)
+
 Hướng dẫn đầy đủ: [`iriv-ioc-mqtt-gateway/README-vn.md`](iriv-ioc-mqtt-gateway/README-vn.md) · [English](iriv-ioc-mqtt-gateway/README.md)  
 (Firmware Cytron mới nhất, Mosquitto Docker, restore USB tại `http://10.0.0.1`, HA MQTT + File Editor.)
 
@@ -64,6 +68,8 @@ Hướng dẫn đầy đủ: [`iriv-ioc-mqtt-gateway/README-vn.md`](iriv-ioc-mqt
 ```text
 Deye SG06 (slave 1) --RS485@9600--> ESP32/NodeMCU + MAX3485 (master) --Wi‑Fi--> Home Assistant (ESPHome API)
 ```
+
+![ESP8266 / NodeMCU + RS485](docs/images/esp8266-rs485.jpg)
 
 Nối dây và flash: [`esphome/README.md`](esphome/README.md)
 
@@ -94,40 +100,23 @@ pip install -r requirements.txt
 
 ## Bắt đầu nhanh
 
-### IRIV + MQTT
+Clone toàn bộ repo, rồi mở hướng dẫn thư mục con tương ứng:
 
 ```bash
-cd iriv-ioc-mqtt-gateway
-docker compose up -d
-python _gen_iriv_jobs.py   # tùy chọn: sinh lại JSON
+git clone https://github.com/vantechcorner/deye-sg06-inverter-rs485-monitor.git
+cd deye-sg06-inverter-rs485-monitor
+pip install -r requirements.txt
 ```
 
-USB-C tới gateway → trình duyệt **`http://10.0.0.1`** → import `iriv-ioc-config.json` (firmware ≥ V1.2.6). Chi tiết: [iriv-ioc-mqtt-gateway/README-vn.md](iriv-ioc-mqtt-gateway/README-vn.md).
+| Thư mục | Khi nào dùng | Hướng dẫn |
+|---------|--------------|-----------|
+| [`iriv-ioc-mqtt-gateway/`](iriv-ioc-mqtt-gateway/) | Cytron IRIV → Mosquitto → HA / dashboard web | [VN](iriv-ioc-mqtt-gateway/README-vn.md) · [EN](iriv-ioc-mqtt-gateway/README.md) |
+| [`web/`](web/) | Xem MQTT trên trình duyệt (`iriv/ivt/#`, WebSocket :9001) | [VN](web/README-vn.md) · [EN](web/README.md) |
+| [`esphome/`](esphome/) | Master Modbus ESP32 / NodeMCU → Home Assistant | [esphome/README.md](esphome/README.md) |
+| [`emulator/`](emulator/) | Slave Modbus trên PC để mang lên bench (không cần biến tần thật) | [VN](emulator/README-vn.md) · [EN](emulator/README.md) |
+| [`docs/`](docs/) | HANDOFF, PDF protocol, ảnh setup | [docs/HANDOFF.md](docs/HANDOFF.md) |
 
-### ESPHome
-
-Xem [esphome/README.md](esphome/README.md). Ví dụ:
-
-```bash
-cd esphome
-esphome run deye-sg06-nodemcu.yaml
-```
-
-### Emulator bench (slave)
-
-```bash
-python emulator/deye-sg06-ivt-emu.py --port COM35 --debug --scenario day
-```
-
-### Dashboard web
-
-Chỉ khi đã có thiết bị publish **`iriv/ivt/#`** (gateway IRIV hoặc ESP32 poller MQTT — **không** phải chỉ ESPHome API):
-
-```bash
-cd web && python -m http.server 8080
-```
-
-Mở `http://127.0.0.1:8080` → broker WebSocket `ws://<host>:9001`. Xem [web/README.md](web/README.md).
+**Một Modbus master trên mỗi bus RS485** — chọn IRIV **hoặc** ESPHome, không chạy cả hai trên cùng cặp A/B.
 
 ---
 

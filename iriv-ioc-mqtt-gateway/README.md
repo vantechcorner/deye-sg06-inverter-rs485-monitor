@@ -38,6 +38,28 @@ python iriv-ioc-mqtt-gateway/_gen_iriv_jobs.py
 
 ---
 
+## Hardware wiring (Deye SUN-6K-SG06LP1 ↔ IRIV)
+
+Use the inverter **datalogger / meter RS485** RJ45 — **not** the BMS **CAN** RJ45. Cut one end off a standard Ethernet cable and land the three signal wires on the IRIV **RS485** screw/push terminals (**A**, **B**, **G**).
+
+**RJ45 pin order on the Deye end:** latch facing **down**, pins numbered **1 → 8 left to right**.
+
+![Deye SG06LP1 RS485 pinout](../docs/images/deye-sg06lp1-rs485-pinout.jpg)
+
+| RJ45 pin (Deye) | Signal | Wire colour (lab cable) | IRIV terminal |
+|-----------------|--------|-------------------------|---------------|
+| **1** | Modbus-485_B | White | **B** |
+| **2** | Modbus-485_A | Red | **A** |
+| **3** | GND_485 | Light blue | **G** |
+
+Pins **7** / **8** / **6** on the Deye port duplicate A / B / GND; this lab cable uses **1–2–3** only.
+
+![IRIV IOC MQTT Gateway RS485 port](../docs/images/iriv-ioc-mqtt-gateway-rs485-port.jpg)
+
+If the bus is silent, swap **A** and **B** once and re-check baud **9600**, slave **1**.
+
+---
+
 ## 1. Run Mosquitto with Docker
 
 From this folder:
@@ -89,20 +111,45 @@ On a new, factory-reset, or freshly updated gateway, configuration is done over 
 2. Wait until the host gets a USB Ethernet / RNDIS link (Windows may install a driver).
 3. Open a browser to **`http://10.0.0.1`**.
 4. Log in with the credentials in the JSON template (**`admin` / `12345678`**) or the factory defaults if you have not imported yet (Cytron docs often ship `admin` / `admin` until you change the password).
-5. Restore / import the poll config:
+5. Open **System** (or equivalent). Enable **Allow config over Ethernet** if you will restore from the LAN IP later, then use **Restore** to import the poll config:
    - Firmware **≥ V1.2.6** → [`iriv-ioc-config.json`](iriv-ioc-config.json)
    - Older firmware → [`iriv-ioc-config-26.json`](iriv-ioc-config-26.json)
-6. Confirm MQTT: host = your Mosquitto IP/hostname, port **1883**, base topic **`iriv/ivt`**, auth off unless your broker requires it.
-7. Wire **RS485 A/B** from the gateway to the Deye **datalogger / meter RS485** port (not the BMS CAN RJ45). Baud **9600**, slave **1**.
-8. After Ethernet LAN is enabled, use the device’s LAN IP for later config; USB `10.0.0.1` is mainly for first bring-up.
 
-Verify traffic (example with mosquitto clients):
+   ![System config — Allow config over Ethernet / Restore](../docs/images/iriv-ioc-mqtt-gateway-system-config-restore.jpg)
+
+6. Set the MQTT **Broker** page: host = your Mosquitto IP/hostname, port **1883**, base topic **`iriv/ivt`**, auth off unless your broker requires it.
+
+   ![MQTT Broker config on IRIV IOC](../docs/images/iriv-ioc-mqtt-gateway-broker-config.jpg)
+
+7. After a successful restore, open the Modbus **poll job** list and confirm the enabled jobs are present (27 on V1.2.6+, or 26 on the older JSON).
+
+   ![Modbus poll jobs after restore](../docs/images/iriv-ioc-mqtt-gateway-modbus-poll-job.jpg)
+
+8. Wire **RS485 A / B / G** as in [Hardware wiring](#hardware-wiring-deye-sun-6k-sg06lp1--iriv) (datalogger RS485, not BMS CAN). Baud **9600**, slave **1**.
+9. After Ethernet LAN is enabled, use the device’s LAN IP for later config; USB `10.0.0.1` is mainly for first bring-up.
+
+### Try it — live MQTT after restore
+
+With the gateway wired to the Deye, Mosquitto running, and config restored:
+
+1. CLI smoke test:
 
 ```bash
 mosquitto_sub -h <broker-host> -t "iriv/ivt/#" -v
 ```
 
 You should see topics such as `iriv/ivt/battery/soc`, `iriv/ivt/pv1/power`, `iriv/ivt/load/current`.
+
+2. Browser dashboard from [`../web/`](../web/):
+
+```powershell
+cd ../web
+python -m http.server 8080
+```
+
+Open `http://127.0.0.1:8080`, point the gear dialog at `ws://<broker-host>:9001`, Connect. Live values should match the IRIV poll jobs:
+
+![Simple MQTT viewer after IRIV restore](../docs/images/simple-mqtt-viewer-web.jpg)
 
 ---
 

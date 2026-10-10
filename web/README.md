@@ -26,6 +26,8 @@ python -m http.server 8080
 
 Open `http://127.0.0.1:8080`. Gear icon → set the broker WebSocket URL (default `ws://<this-host>:9001`) → Connect.
 
+![Simple MQTT viewer web UI](../docs/images/simple-mqtt-viewer-web.jpg)
+
 Layouts (top-right toggle, remembered in the browser):
 
 - **Simplify** — tabbed overview. PV1 / PV2 stretch to full width.

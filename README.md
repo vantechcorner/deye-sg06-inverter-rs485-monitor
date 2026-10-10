@@ -2,6 +2,8 @@
 
 Monitor a **Deye SG06 Inverter** (SG05/SG06 family) over **Modbus RTU (RS485)** on the datalogger port. This repo provides register maps, a Cytron IRIV IOC MQTT Gateway import, an ESPHome / ESP32 RS485 master example, a PC slave emulator, Mosquitto Docker for MQTT, a Home Assistant package, and a browser MQTT dashboard.
 
+![Deye SUN-6K-SG06LP1 RS485](docs/images/deye-sun-6k-sg06lp1-rs485.jpg)
+
 ![IRIV IOC MQTT Gateway setup](docs/images/iriv-ioc-mqtt-setup.jpg)
 
 > Vietnamese: [README-vn.md](README-vn.md)  
@@ -56,6 +58,8 @@ Deye SG06 (slave 1) --RS485@9600--> IRIV IOC (master) --MQTT--> Mosquitto
                                                               |--> web/ dashboard (WS :9001)
 ```
 
+![IRIV IOC MQTT Gateway setup](docs/images/iriv-ioc-mqtt-setup-2.jpg)
+
 Full guide: [`iriv-ioc-mqtt-gateway/README.md`](iriv-ioc-mqtt-gateway/README.md) · [Vietnamese](iriv-ioc-mqtt-gateway/README-vn.md)  
 (Latest Cytron firmware, Mosquitto Docker, USB restore at `http://10.0.0.1`, HA MQTT + File Editor.)
 
@@ -64,6 +68,8 @@ Full guide: [`iriv-ioc-mqtt-gateway/README.md`](iriv-ioc-mqtt-gateway/README.md)
 ```text
 Deye SG06 (slave 1) --RS485@9600--> ESP32/NodeMCU + MAX3485 (master) --Wi‑Fi--> Home Assistant (ESPHome API)
 ```
+
+![ESP8266 / NodeMCU + RS485](docs/images/esp8266-rs485.jpg)
 
 Wiring and flash: [`esphome/README.md`](esphome/README.md)
 
@@ -94,40 +100,23 @@ pip install -r requirements.txt
 
 ## Quick start
 
-### IRIV + MQTT
+Clone the whole repo, then follow the guide for the path you need:
 
 ```bash
-cd iriv-ioc-mqtt-gateway
-docker compose up -d
-python _gen_iriv_jobs.py   # optional: regenerate JSON
+git clone https://github.com/vantechcorner/deye-sg06-inverter-rs485-monitor.git
+cd deye-sg06-inverter-rs485-monitor
+pip install -r requirements.txt
 ```
 
-USB-C to the gateway → browser **`http://10.0.0.1`** → import `iriv-ioc-config.json` (firmware ≥ V1.2.6). Details: [iriv-ioc-mqtt-gateway/README.md](iriv-ioc-mqtt-gateway/README.md).
+| Path | When to use | Guide |
+|------|-------------|--------|
+| [`iriv-ioc-mqtt-gateway/`](iriv-ioc-mqtt-gateway/) | Cytron IRIV → Mosquitto → HA / web dashboard | [EN](iriv-ioc-mqtt-gateway/README.md) · [VN](iriv-ioc-mqtt-gateway/README-vn.md) |
+| [`web/`](web/) | Browser MQTT viewer (`iriv/ivt/#`, WebSocket :9001) | [EN](web/README.md) · [VN](web/README-vn.md) |
+| [`esphome/`](esphome/) | ESP32 / NodeMCU Modbus master → Home Assistant | [esphome/README.md](esphome/README.md) |
+| [`emulator/`](emulator/) | PC Modbus slave for bench bring-up (no live inverter) | [EN](emulator/README.md) · [VN](emulator/README-vn.md) |
+| [`docs/`](docs/) | HANDOFF, protocol PDF, setup photos | [docs/HANDOFF.md](docs/HANDOFF.md) |
 
-### ESPHome
-
-See [esphome/README.md](esphome/README.md). Example:
-
-```bash
-cd esphome
-esphome run deye-sg06-nodemcu.yaml
-```
-
-### Bench emulator (slave)
-
-```bash
-python emulator/deye-sg06-ivt-emu.py --port COM35 --debug --scenario day
-```
-
-### Web dashboard
-
-Only if something publishes **`iriv/ivt/#`** (IRIV gateway or an ESP32 MQTT poller — **not** ESPHome API alone):
-
-```bash
-cd web && python -m http.server 8080
-```
-
-Open `http://127.0.0.1:8080` → broker WebSocket `ws://<host>:9001`. See [web/README.md](web/README.md).
+**One Modbus master per RS485 bus** — pick IRIV **or** ESPHome, not both on the same A/B.
 
 ---
 
